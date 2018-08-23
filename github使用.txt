@@ -1,0 +1,7 @@
+git status
+
+git add *
+
+git commit -am "master"
+
+git push -u origin master
