@@ -1,5 +1,7 @@
 git init
 
+cd E:\github\learn
+
 git status
 
 git add *

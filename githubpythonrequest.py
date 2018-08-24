@@ -4,7 +4,16 @@
 #安装使用excel的包
 #pip install urllib
 #安装request的语句，目前python3已经包含
+# -*- coding: utf-8 -*-
 import random
+import urllib.request
+import re
+import openpyxl
+from openpyxl import Workbook
+from openpyxl.writer.excel import ExcelWriter
+
+
+
 
 head_connection = ['Keep-Alive','close']
 # 开启 keep-alive模式，请求处理完毕会被断掉
@@ -47,9 +56,9 @@ def get_header() :
 
 def get_html(url):
     header = get_header()
-    proxyIP=['171,37,161,186:8080']
+    proxyIP=['183.147.209.69:9080']
     #设置代理ip和端口
-    proxyhandler=urlib.request.Proxyhandler({'http':proxyIP[0]})
+    proxyhandler= urllib.request.ProxyHandler({'http':proxyIP[0]})
     #设置代理
     opener=urllib.request.build_opener(proxyhandler)
     #创建opener对象
@@ -64,5 +73,45 @@ def get_html(url):
     data=send_head.read().decode('utf-8')
     return data
 
+# import urllib.request
+# url = r'https://movie.douban.com/top250?start=25&filter='
+# res = urllib.request.urlopen(url)
+# html = res.read().decode('utf-8')
+# print(html)
+#获取网页的html
 
 
+datalist = []
+#创建存放数据列表
+def qingxi(data):
+    #定义清理函数，利用正则表达式提取数据
+    reg=re.compile('<div class="item">.*?<img width="100" alt="(.*?)".*?<p class="">.*?导演: (.*?) .*?<span class="rating_num" property="v:average">(.*?)</span>.*?<span>(.*?)人评价</span>.*?</div>',re.S)
+    lists=re.findall(reg,data)
+    datalist.extend(lists)
+
+
+i=0
+while i <= 225:
+    print('获取第',(i/25+1),'页')
+    url='https://movie.douban.com/top250?start='+str(i)+'&filter='
+    data=get_html(url)
+    qingxi(data)
+    i+=25
+#找到网页的规律
+
+print(datalist)
+
+def saveExcel():
+    wb=Workbook()
+    sheet1=wb.create_sheet('豆瓣电影信息',0)
+    sheet1.cell(1,1).value='电影名称'
+    sheet1.cell(1,2).value='导演'
+    sheet1.cell(1,3).value='评分'
+    sheet1.cell(1,4).value='评论人数'
+    #创建excel，和第一页，和第一行信息，注意cell是从1开始
+    for i in range(len(datalist)):
+        for j in range(len(datalist[i])):
+            sheet1.cell(i+2,j+1).value=datalist[i][j]
+    wb.save('doubanresult.xlsx')
+    #使用openpyxl，可以直接保存为xlsx
+saveExcel()
